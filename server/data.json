@@ -1,0 +1,42 @@
+{
+  "cams": [
+    {
+      "name": "whisperArts",
+      "id": 0
+    },
+    {
+      "name": "robo",
+      "id": 2
+    },
+    {
+      "name": "itgrade",
+      "id": 5
+    },
+    {
+      "name": "green",
+      "id": "3"
+    }
+  ],
+  "pairs": [
+    {
+      "name": "1",
+      "startTime": "8:30:00",
+      "endTime": "10:30:00"
+    },
+    {
+      "name": "2",
+      "startTime": "10:50:00",
+      "endTime": "12:10:00"
+    },
+    {
+      "name": "3",
+      "startTime": "12:30:00",
+      "endTime": "14:30:00"
+    },
+    {
+      "name": "4",
+      "startTime": "15:50:00",
+      "endTime": "17:50:00"
+    }
+  ]
+}

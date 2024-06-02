@@ -1,0 +1,29 @@
+.container{
+    text-align: center;
+    display: block;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+.container__item, .form__item {
+   margin-bottom: 10px;
+}
+table {
+   margin: 0 auto;
+   border: 1px solid grey;
+}
+ /* границы ячеек первого ряда таблицы */
+th {
+   border: 1px solid grey;
+}
+ /* границы ячеек тела таблицы */
+td {
+   border: 1px solid grey;
+}
+
+.buttons{
+   margin-top: 10px;
+}
+.buttons>a{
+   margin: 10px;
+}

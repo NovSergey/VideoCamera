@@ -1,0 +1,33 @@
+<div class="container">
+    <h1>{{title}}</h1>
+    <input class="container__item" id="date" type="date" max="{{endDay}}" min="{{beginDay}}" value="{{endDay}}"/>
+    <table class="container__item">
+        <thead>
+            <tr>
+                <th>id камеры</th>
+                {{#each pairs}}
+                    <th>{{this.name}} пара</th>
+                {{/each}}
+            </tr>
+        </thead>
+        <tbody>
+            {{#each cams}}
+                <tr>                                   
+                    <td>{{this.name}}</td>
+                    {{#each ../pairs}}
+                        <th><input type="checkbox" id="{{../this.name}} {{../this.id}} {{this.startTime}} {{this.endTime}}"/></th>
+                    {{/each}}
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>    
+    <input class="container__item" type="button" onclick="sendData();" value="Сохранить"/>
+    <input class="container__item" type="button" onclick="Update();" value="Обновить таблицу"/>
+    <div class="buttons container__item">
+        <a href="/auth">Сменить аккаунт загрузки</a>
+        <a href="/addCam">Добавить камеры</a>
+        <a href="/addPair">Добавить пары</a>
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+<script src="../js/index.js"></script>
