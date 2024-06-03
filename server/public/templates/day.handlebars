@@ -21,12 +21,18 @@
             {{/each}}
         </tbody>
     </table>    
-    <input class="container__item" type="button" onclick="sendData();" value="Сохранить"/>
     <input class="container__item" type="button" onclick="Update();" value="Обновить таблицу"/>
+    <input class="container__item" type="button" onclick="sendData();" value="Сохранить"/>
     <div class="buttons container__item">
-        <a href="/auth">Сменить аккаунт загрузки</a>
-        <a href="/addCam">Добавить камеры</a>
-        <a href="/addPair">Добавить пары</a>
+        <a = href="/logout">Выйти из аккаунта</a>       
+            {{#if username}}
+                <div style="margin-top: 10px;">
+                    <a href="/authYouTube">Сменить аккаунт загрузки</a>
+                    <a href="/addCam">Добавить камеры</a>
+                    <a href="/addPair">Добавить пары</a>
+                </div>
+            {{/if}}
+
     </div>
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.js"></script>

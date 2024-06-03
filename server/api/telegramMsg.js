@@ -9,7 +9,7 @@ module.exports.sendMsg = (msg_) => {
     const config = JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'), 'utf-8'));
 
     var msg = encodeURI(msg_)
-    http.post(`https://api.telegram.org/bot${config["bot_token"]}/sendMessage?chat_id=${config["chat_id"]}&parse_mode=html&text=${msg}`, function (error, response, body) {  
+    http.post(`https://api.telegram.org/bot${config["server_config"]["bot_token"]}/sendMessage?chat_id=${config["server_config"]["chat_id"]}&parse_mode=html&text=${msg}`, function (error, response, body) {  
         if(error || response.statusCode!==200){
             console.log('error:', error);
             console.log('statusCode:', response && response.statusCode); 

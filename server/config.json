@@ -1,9 +1,21 @@
 {
-    "server_ip": "localhost",
-    "server_port": "700",
-    "login": "admin",
-    "password": "admin",
-    "dir_exports": "C:/exports",
-    "bot_token": "7268101992:AAHeHtKF4m-VywXKztwqfvpUj_ZqlHg-MyE",
-    "chat_id":"-4172288556"
+    "server_config":{
+        "server_ip": "localhost",
+        "server_port": "700",
+        "login": "admin",
+        "password": "admin",
+        "dir_exports": "C:/exports",
+        "bot_token": "7268101992:AAHeHtKF4m-VywXKztwqfvpUj_ZqlHg-MyE",
+        "chat_id":"-4172288556"
+    },
+    "user_config":{
+        "admin":{
+            "login": "admin",
+            "password": "admin"
+        },
+        "user":{
+            "login":"user",
+            "password": "user"
+        }
+    }
 }

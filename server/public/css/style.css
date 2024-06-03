@@ -27,3 +27,6 @@ td {
 .buttons>a{
    margin: 10px;
 }
+form{
+   display: inline-grid;
+}

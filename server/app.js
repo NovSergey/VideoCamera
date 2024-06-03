@@ -2,6 +2,7 @@
 
 const handlebars = require('express-handlebars');
 const express = require("express");
+const session = require('express-session');
 
 const path = require('path') 
 var fs = require('fs');
@@ -10,7 +11,7 @@ const ctrlTelegram = require('./api/telegramMsg');
 const ctrlYoutube = require('./api/youtubeVideo');
 
 var {google} = require('googleapis');
-
+const { request } = require('http');
 
 
 
@@ -30,6 +31,11 @@ let app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(session({
+	secret: 'secret',
+	resave: true,
+	saveUninitialized: true
+}));
 
 app.engine(
     'handlebars',
@@ -53,7 +59,6 @@ function GetStringDate(lessDays){
     return ConvertDateToString(endDay);
 }
 
-
 // HANDLERS
 
 // GET REQUSETS
@@ -61,84 +66,120 @@ app.get("/", (request, response)=>{
     response.render('index',{'title':'Вход'});
 })
 
+app.get('/logout', (request, response)=>{
+    if(request.session.loggedin){
+        request.session.destroy();
+    }
+    response.redirect('/');
+})
+
 app.get("/day", (request, response)=>{
-    var endDay = GetStringDate(1);
-    var beginDay = GetStringDate(10);// 10 - число дней записей 
-    var data = JSON.parse(fs.readFileSync(path.join(__dirname,'/data.json'), 'utf-8'));
-    var cams = data["cams"];
-    var pairs = data["pairs"];
-
-    response.render('day',{
-        'title':'Дни',
-        'endDay': endDay,
-        'beginDay': beginDay,
-        "cams": cams,
-        "pairs": pairs
-    });
-});
-
-app.get('/getExports', (req, res)=>{
-    if (!fs.existsSync(config["dir_exports"]+"/exports.json")) {
-        res.json([]);
-    }
-    var data = JSON.parse(fs.readFileSync(config["dir_exports"]+"/exports.json", "utf-8"));
-    var day = data.find(el=>el["day"]===req.query.day);
-    res.json(day?day:[]);
-});
-
-app.all('/addCam', (req, res, next)=>{
-    if(req.method==="GET"){
-        res.render('addCam', {'title':"Добавление камеры"});
-    }
-    if(req.method==="POST"){
+    if(request.session.loggedin){
+        var endDay = GetStringDate(1);
+        var beginDay = GetStringDate(10);// 10 - число дней записей 
         var data = JSON.parse(fs.readFileSync(path.join(__dirname,'/data.json'), 'utf-8'));
-        data["cams"].push({"name": req.body.name, "id": req.body.id});
+        var cams = data["cams"];
+        var pairs = data["pairs"];
+        response.render('day',{
+            'title':'Дни',
+            'endDay': endDay,
+            'beginDay': beginDay,
+            "cams": cams,
+            "pairs": pairs,
+            "username": request.session.username==="admin"
+        });
+    }
+    else response.redirect('/');    
+});
+
+app.get('/getExports', (request, response)=>{
+    if (!fs.existsSync(config["server_config"]["dir_exports"]+"/exports.json")) {
+        response.json([]);
+    }
+    var data = JSON.parse(fs.readFileSync(config["server_config"]["dir_exports"]+"/exports.json", "utf-8"));
+    var day = data.find(el=>el["day"]===request.query.day);
+    response.json(day?day:[]);
+});
+
+app.all('/addCam', (request, response, next)=>{    
+    if(request.method==="GET"){
+        if(request.session.loggedin && request.session.username=="admin"){
+            response.render('addCam', {'title':"Добавление камеры"});
+        }
+        else responseponse.redirect('/');
+    }
+    if(request.method==="POST"){
+        var data = JSON.parse(fs.readFileSync(path.join(__dirname,'/data.json'), 'utf-8'));
+        data["cams"].push({"name": request.body.name, "id": request.body.id});
         fs.writeFileSync(path.join(__dirname,'/data.json'), JSON.stringify(data, null, 2), 'utf-8')
-        res.redirect('/day');
+        response.redirect('/day');
     }
 })
 
-app.all('/addPair', (req, res, next)=>{
-    if(req.method==="GET"){
-        res.render('addPair', {'title':"Добавление пары"});
+app.all('/addPair', (request, response, next)=>{
+    if(request.method==="GET"){
+        if(request.session.loggedin && request.session.username=="admin"){
+            response.render('addPair', {'title':"Добавление пары"});
+        }
+        else responseponse.redirect('/');
     }
-    if(req.method==="POST"){
+    if(request.method==="POST"){
         var data = JSON.parse(fs.readFileSync(path.join(__dirname,'/data.json'), 'utf-8'));
-        data["pairs"].push({"name": req.body.name, "startTime": req.body.startTime, "endTime": req.body.endTime});
+        data["pairs"].push({"name": request.body.name, "startTime": request.body.startTime, "endTime": request.body.endTime});
         fs.writeFileSync(path.join(__dirname,'/data.json'), JSON.stringify(data, null, 2), 'utf-8')
-        res.redirect('/day');
+        response.redirect('/day');
     }
 })
 
+app.get('/authYouTube', (request, response) => {
 
-app.get('/auth', (req, res) => {
     const url = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: ['https://www.googleapis.com/auth/youtube.upload'] 
     });
-    res.redirect(url);
+    response.redirect(url);
 });
 
 
-app.get('/oauth2callback', async (req, res) => {
-    const code  = req.query;
+app.get('/oauth2callback', async (request, response) => {
+    const code  = request.query;
     try {
         const tokens = await oauth2Client.getToken(code);
         fs.writeFileSync(path.join(__dirname,"/api/youtubeTokens/credentials.json"),JSON.stringify(tokens, null, 2));
-        res.redirect("/day");
+        response.redirect("/day");
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).send('Error during oauth');
+        response.status(500).send('Error during oauth');
     }
 });
 
 // POST REQUSETS
 
+app.post('/auth', function(request, response) {
+	// Capture the input fields
+	let username = request.body.login;
+	let password = request.body.password;
+	if (username && password) {
+        let user = Object.keys(config["user_config"]).find(key=>config["user_config"][key]["login"]===username && config["user_config"][key]["password"]===password);
+        if(user){            
+            request.session.loggedin = true;
+            request.session.username = username;
+            response.redirect('/day');
+        } else {
+            response.send('Incorrect Username and/or Password!');
+        }			
+        response.end();
+	} else {
+		response.send('Please enter Username and Password!');
+		response.end();
+	}
+});
+
 app.post("/script",(request, response)=>{
     if(!request.body)
         return response.sendStatus(400);
     var requestRes = request.body;
-    var fileFolderPath = config["dir_exports"];
+    var fileFolderPath = config["server_config"]["dir_exports"];
     var filePath = path.join(fileFolderPath+"/exports.json")
 
     // создание папок
@@ -166,42 +207,42 @@ app.post("/script",(request, response)=>{
     ctrlTelegram.sendMsg(ctrlTelegram.Placeholder("/script", `Успешно добавлен день: ${requestRes.day}\n<b>Количество пар</b>: ${requestRes.cams.reduce((acc, item)=>acc+ item["time"].length,0)}`));    response.sendStatus(200);
 });
 
-app.post('/telegram', (req, res) => {
-    let reqBody = req.body
+app.post('/telegram', (request, response) => {
+    let reqBody = request.body
     //каждый элемент обьекта запихиваем в массив
     let msg = ctrlTelegram.Placeholder(reqBody.name, reqBody.log);
     //проходимся по массиву и склеиваем все в одну строку
-    var response = ctrlTelegram.sendMsg(msg);
-    if(response===200){
+    var responseStatus = ctrlTelegram.sendMsg(msg);
+    if(responseStatus===200){
         res.status(200).json({status: 'ok', message: 'Успешно отправлено!'});
     }
-    if(response!==200){
+    if(responseStatus!==200){
         res.status(400).json({status: 'error', message: 'Произошла ошибка!'});
     }
     
 });
 
-app.post('/upload',(req, res) => {
-    fs.readdir(config["dir_exports"]+"/videos", (e, files)=>{        
+app.post('/upload',(request, response) => {
+    fs.readdir(config["server_config"]["dir_exports"]+"/videos", (e, files)=>{        
         if(e){
             ctrlTelegram.sendMsg(Placeholder("/upload","Не удалось загрузить видео в ютуб!"));
-            res.sendStatus(400);
+            response.sendStatus(400);
         }
         else{
             let log = `Общее кол-во видео: ${files.length}\n\n`;
             files.forEach(fileName=>{
-                var resUpload = true;//await ctrlYoutube.uploadVideo(fileName, `${config["dir_exports"]}/videos/${fileName}`);
+                var resUpload = true;//await ctrlYoutube.uploadVideo(fileName, `${config["server_config"]["dir_exports"]}/videos/${fileName}`);
                 log += `Отправлено видео ${fileName}. Статус: ${resUpload?"Загружено":"Не загружено"}\n`;
-                fs.unlinkSync(config["dir_exports"]+"/videos/"+fileName);
+                fs.unlinkSync(config["server_config"]["dir_exports"]+"/videos/"+fileName);
             });
             ctrlTelegram.sendMsg(ctrlTelegram.Placeholder("/upload",log));
-            fs.unlinkSync(config["dir_exports"]+"/exports.json");
+            fs.unlinkSync(config["server_config"]["dir_exports"]+"/exports.json");
         }        
     });
-    res.sendStatus(200);
+    response.sendStatus(200);
 });
 
-app.listen(config['server_port'], config['server_ip'], function () {
-    console.log(`Server listens http://${config['server_ip']}:${config['server_port']}`);
+app.listen(config["server_config"]['server_port'], config["server_config"]['server_ip'], function () {
+    console.log(`Server listens http://${config["server_config"]['server_ip']}:${config["server_config"]['server_port']}`);
 });
 
