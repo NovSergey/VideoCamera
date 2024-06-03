@@ -203,8 +203,8 @@ app.post("/script",(request, response)=>{
     else 
         data.push({"day": requestRes.day, "cams": requestRes.cams});
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-
-    ctrlTelegram.sendMsg(ctrlTelegram.Placeholder("/script", `Успешно добавлен день: ${requestRes.day}\n<b>Количество пар</b>: ${requestRes.cams.reduce((acc, item)=>acc+ item["time"].length,0)}`));    response.sendStatus(200);
+    var count = requestRes.cams.reduce((acc, item)=>acc+ item["time"].length,0);
+    ctrlTelegram.sendMsg(ctrlTelegram.Placeholder("/script", `Успешно добавлен день: ${requestRes.day}\n<b>Количество пар</b>: ${count==0?"Все пары удалены за этот день":count}`));    response.sendStatus(200);
 });
 
 app.post('/telegram', (request, response) => {
